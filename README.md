@@ -4,6 +4,8 @@ Reproducible implementation of **Does TabPFN Improve Molecular Active Learning
 in the Small-Data Regime?** The protocol is locked in `config.yaml`; scientific
 decisions and failures are recorded in `RESEARCH_DIARY.md`.
 
+For the RTX A4000 machine, follow [CUDA_RUNBOOK.md](CUDA_RUNBOOK.md) exactly.
+
 ## Environment
 
 Use Python 3.11. On the CUDA host, install the correct CUDA-enabled PyTorch build

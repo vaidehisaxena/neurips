@@ -15,14 +15,15 @@ from study import load_config, write_json
 EXPECTED_BUDGETS = list(range(32, 257, 16))
 
 
-def validate(metrics: pd.DataFrame, queries: pd.DataFrame, datasets: list[str]) -> None:
+def validate(metrics: pd.DataFrame, queries: pd.DataFrame, datasets: list[str],
+             seeds: list[int], budgets: list[int]) -> None:
     keys = ["dataset", "seed", "model", "acquisition"]
-    expected = len(datasets) * 10 * len(MODELS) * len(ACQUISITIONS)
+    expected = len(datasets) * len(seeds) * len(MODELS) * len(ACQUISITIONS)
     groups = metrics.groupby(keys, sort=False)
     if groups.ngroups != expected:
         raise AssertionError(f"Expected {expected} trajectories, found {groups.ngroups}")
     for key, group in groups:
-        if sorted(group["budget"].tolist()) != EXPECTED_BUDGETS:
+        if sorted(group["budget"].tolist()) != budgets:
             raise AssertionError(f"Bad budgets for {key}")
     metric_columns = ["test_auroc", "test_auprc", "brier", "nll",
                       "fit_runtime", "prediction_runtime", "acquisition_prediction_runtime"]
@@ -34,7 +35,7 @@ def validate(metrics: pd.DataFrame, queries: pd.DataFrame, datasets: list[str]) 
     if qgroups.ngroups != expected:
         raise AssertionError("Missing query histories")
     for key, group in qgroups:
-        if len(group) != 256 or group["queried_molecule_id"].duplicated().any():
+        if len(group) != budgets[-1] or group["queried_molecule_id"].duplicated().any():
             raise AssertionError(f"Invalid query history for {key}")
         acquired = group[group["round"] > 0]
         if len(group[group["round"] == 0]) != 32 or not (acquired.groupby("round").size() == 16).all():
@@ -130,11 +131,24 @@ def make_figures(metrics: pd.DataFrame, comparisons_df: pd.DataFrame, out: Path)
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config.yaml")
+    parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args()
     cfg = load_config(args.config)
     results = Path(cfg["paths"]["results_dir"])
-    metrics, queries = pd.read_csv(results / "metrics.csv"), pd.read_csv(results / "queries.csv")
-    validate(metrics, queries, list(cfg["datasets"]))
+    prefix = "smoke_" if args.smoke else ""
+    metrics = pd.read_csv(results / f"{prefix}metrics.csv")
+    queries = pd.read_csv(results / f"{prefix}queries.csv")
+    budgets = [32, 48, 64] if args.smoke else EXPECTED_BUDGETS
+    seeds = [0] if args.smoke else cfg["active_learning"]["seeds"]
+    validate(metrics, queries, list(cfg["datasets"]), seeds, budgets)
+    if args.validate_only:
+        output = results / ("smoke_validation.json" if args.smoke else "validation.json")
+        write_json(output, {"valid": True,
+                            "trajectories": len(cfg["datasets"]) * len(seeds) * 9,
+                            "budgets_per_trajectory": len(budgets)})
+        print(f"validated {output}")
+        return
     aulc = add_aulc(metrics)
     comparison_table = comparisons(aulc, cfg)
     tables, figures = results / "tables", results / "figures"

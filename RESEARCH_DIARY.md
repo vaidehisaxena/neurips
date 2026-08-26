@@ -166,3 +166,14 @@ attempt failed because GitHub credentials were unavailable on this host.
   0.53 s acquisition predict; TabPFN 6.14 s / 512.81 s / 563.89 s; XGBoost
   1.63 s / 0.02 s / 0.01 s.
 - Stage 6 is complete. The full 450-trajectory Stage 7 benchmark has not begun.
+
+## 2026-08-26 — Full CPU run stopped for CUDA transfer
+
+- The human requested that the newly started Apple Silicon full run be stopped
+  and transferred to the RTX A4000 host.
+- The process received `SIGINT` while computing the first trajectory. Because
+  checkpointing occurs only after a complete trajectory, `results/metrics.csv`
+  and `results/queries.csv` were not created. No partial trajectory is being
+  represented as complete.
+- A CUDA runbook and explicit smoke/full validation-only commands were added.
+- Stage 7 remains not started; the study remains incomplete.
