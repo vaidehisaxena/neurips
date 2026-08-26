@@ -43,6 +43,14 @@ python run_al.py --config config.yaml
 python analyze_results.py --config config.yaml
 ```
 
+On Apple Silicon without Homebrew `libomp`, use the OpenMP runtime already
+shipped in the pinned scikit-learn wheel:
+
+```bash
+DYLD_LIBRARY_PATH=.venv/lib/python3.11/site-packages/sklearn/.dylibs \
+  python run_al.py --config config.yaml --smoke
+```
+
 `run_al.py` appends only completed trajectories and skips already complete
 dataset/seed/model/acquisition combinations, so interrupted runs resume safely.
 Do not copy partially written result files while a process is running.

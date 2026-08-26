@@ -137,3 +137,32 @@ attempt failed because GitHub credentials were unavailable on this host.
   manifest used the acquisition-only schema and were deleted as stale. Unit
   tests and a fresh RF trajectory-history check passed after this correction;
   the CUDA smoke run must regenerate all smoke artifacts.
+
+## 2026-08-26 — Apple Silicon smoke-test continuation
+
+- The human requested local XGBoost and TabPFN smoke execution and supplied an
+  Apple Silicon TabPFN example.
+- The environment already contained `libomp.dylib` in scikit-learn and PyTorch.
+  Launching Python with scikit-learn's bundled OpenMP directory in
+  `DYLD_LIBRARY_PATH` resolved the macOS dynamic-library error. A toy XGBoost
+  fit and probability prediction passed. An attempted in-process `ctypes`
+  preload did not satisfy XGBoost's `@rpath` lookup and was removed after the
+  integrated smoke run captured the exact failure. No model parameters or
+  package versions changed.
+- The supplied TabPFN article uses MPS but reports CPU faster on its smaller
+  Apple Silicon tests. The study continues to resolve `device: auto` as CUDA
+  when CUDA exists and CPU otherwise; MPS is not silently introduced.
+- The corrected full two-round smoke matrix completed on the M5 Mac: five
+  datasets × three models × three acquisitions × seed 0 = 45 trajectories.
+  Every trajectory contains budgets 32, 48, and 64 and 64 recorded labeled
+  identities (32 initial plus two batches of 16). All numeric metrics were
+  finite, batches had no repeated molecule, batch sizes were exact, initial
+  sets matched across every model/acquisition, and random acquisition histories
+  matched across all three models.
+- Repeated DILI random trajectories for TabPFN and XGBoost produced identical
+  query histories and non-runtime metrics. Together with the earlier RF repeat,
+  model-level deterministic smoke acceptance passed.
+- Aggregate corrected smoke timings were: RF 8.45 s fit / 0.89 s test predict /
+  0.53 s acquisition predict; TabPFN 6.14 s / 512.81 s / 563.89 s; XGBoost
+  1.63 s / 0.02 s / 0.01 s.
+- Stage 6 is complete. The full 450-trajectory Stage 7 benchmark has not begun.
