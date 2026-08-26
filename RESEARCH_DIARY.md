@@ -131,3 +131,9 @@ attempt failed because GitHub credentials were unavailable on this host.
   It has not been substituted or skipped in the required CUDA smoke matrix.
 - Stage 6 is incomplete until all 15 XGBoost smoke trajectories pass on the
   CUDA/Linux host.
+- After the local smoke run, query-history output was strengthened to include
+  the 32 initial labeled molecules (`round=0`, `is_initial=true`) so every
+  trajectory records all 256 labeled identities. The earlier smoke CSVs and
+  manifest used the acquisition-only schema and were deleted as stale. Unit
+  tests and a fresh RF trajectory-history check passed after this correction;
+  the CUDA smoke run must regenerate all smoke artifacts.
