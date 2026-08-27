@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from prepare_data import clean
-from run_al import entropy, entropy_diversity, initial_and_random_order, mean_pairwise_similarity, seeded_rank
+from run_al import append_checkpoint, entropy, entropy_diversity, initial_and_random_order, mean_pairwise_similarity, seeded_rank
 from study import canonicalize, fingerprint, rdkit2d
 
 
@@ -76,4 +76,14 @@ def test_hybrid_stays_in_shortlist_and_improves_toy_diversity():
     assert set(chosen) <= shortlist
     assert len(set(chosen)) == 3
     assert mean_pairwise_similarity(fps[chosen]) < mean_pairwise_similarity(fps[entropy_batch])
+
+
+def test_checkpoint_replaces_a_retried_trajectory(tmp_path):
+    path = tmp_path / "metrics.csv"
+    key = {"dataset": "DILI", "seed": 0, "model": "rf", "acquisition": "random"}
+    append_checkpoint(path, pd.DataFrame([key | {"budget": 32, "score": 0.1}]))
+    append_checkpoint(path, pd.DataFrame([key | {"budget": 32, "score": 0.2}]))
+    saved = pd.read_csv(path)
+    assert len(saved) == 1
+    assert saved.iloc[0]["score"] == 0.2
 

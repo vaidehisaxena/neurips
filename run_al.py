@@ -227,6 +227,10 @@ def trajectory(dataset: str, seed: int, model_name: str, acquisition: str,
 
 def append_checkpoint(path: Path, new: pd.DataFrame) -> None:
     old = pd.read_csv(path) if path.exists() else pd.DataFrame()
+    if not old.empty:
+        keys = ["dataset", "seed", "model", "acquisition"]
+        replaced = pd.MultiIndex.from_frame(new[keys].drop_duplicates())
+        old = old[~pd.MultiIndex.from_frame(old[keys]).isin(replaced)]
     combined = pd.concat([old, new], ignore_index=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     combined.to_csv(temporary, index=False)
