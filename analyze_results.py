@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from run_al import ACQUISITIONS, MODELS
+from run_al import ACQUISITIONS, BASE_MODELS, MODELS
 from study import load_config, write_json
 
 
@@ -16,9 +16,9 @@ EXPECTED_BUDGETS = list(range(32, 257, 16))
 
 
 def validate(metrics: pd.DataFrame, queries: pd.DataFrame, datasets: list[str],
-             seeds: list[int], budgets: list[int]) -> None:
+             seeds: list[int], budgets: list[int], models: tuple[str, ...]) -> None:
     keys = ["dataset", "seed", "model", "acquisition"]
-    expected = len(datasets) * len(seeds) * len(MODELS) * len(ACQUISITIONS)
+    expected = len(datasets) * len(seeds) * len(models) * len(ACQUISITIONS)
     groups = metrics.groupby(keys, sort=False)
     if groups.ngroups != expected:
         raise AssertionError(f"Expected {expected} trajectories, found {groups.ngroups}")
@@ -80,12 +80,12 @@ def paired_bootstrap(frame: pd.DataFrame, left: tuple[str, str], right: tuple[st
     }
 
 
-def comparisons(aulc: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+def comparisons(aulc: pd.DataFrame, cfg: dict, models: tuple[str, ...]) -> pd.DataFrame:
     pairs = []
     for acquisition in ACQUISITIONS:
-        pairs += [(('tabpfn', acquisition), ('random_forest', acquisition)),
-                  (('tabpfn', acquisition), ('xgboost', acquisition))]
-    for model in MODELS:
+        pairs += [(('tabpfn', acquisition), (model, acquisition))
+                  for model in models if model != 'tabpfn']
+    for model in models:
         pairs += [((model, 'entropy'), (model, 'random')),
                   ((model, 'entropy_diversity'), (model, 'random')),
                   ((model, 'entropy_diversity'), (model, 'entropy'))]
@@ -133,25 +133,31 @@ def main() -> None:
     parser.add_argument("--config", default="config.yaml")
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--representation", choices=("ecfp4", "rdkit2d"), default=None)
     args = parser.parse_args()
     cfg = load_config(args.config)
     results = Path(cfg["paths"]["results_dir"])
-    prefix = "smoke_" if args.smoke else ""
+    representation = args.representation or "ecfp4"
+    models = MODELS if args.representation else BASE_MODELS
+    rep_prefix = f"{args.representation}_" if args.representation else ""
+    prefix = rep_prefix + ("smoke_" if args.smoke else "")
     metrics = pd.read_csv(results / f"{prefix}metrics.csv")
     queries = pd.read_csv(results / f"{prefix}queries.csv")
     budgets = [32, 48, 64] if args.smoke else EXPECTED_BUDGETS
     seeds = [0] if args.smoke else cfg["active_learning"]["seeds"]
-    validate(metrics, queries, list(cfg["datasets"]), seeds, budgets)
+    validate(metrics, queries, list(cfg["datasets"]), seeds, budgets, models)
     if args.validate_only:
-        output = results / ("smoke_validation.json" if args.smoke else "validation.json")
+        output = results / f"{prefix}validation.json"
         write_json(output, {"valid": True,
-                            "trajectories": len(cfg["datasets"]) * len(seeds) * 9,
+                            "representation": representation,
+                            "trajectories": len(cfg["datasets"]) * len(seeds) * len(models) * len(ACQUISITIONS),
                             "budgets_per_trajectory": len(budgets)})
         print(f"validated {output}")
         return
     aulc = add_aulc(metrics)
-    comparison_table = comparisons(aulc, cfg)
-    tables, figures = results / "tables", results / "figures"
+    comparison_table = comparisons(aulc, cfg, models)
+    suffix = f"_{args.representation}" if args.representation else ""
+    tables, figures = results / f"tables{suffix}", results / f"figures{suffix}"
     tables.mkdir(exist_ok=True); figures.mkdir(exist_ok=True)
     per_dataset = aulc.groupby(["dataset", "model", "acquisition"], as_index=False).aulc.mean()
     macro = aulc.groupby(["model", "acquisition"], as_index=False).aulc.mean()
@@ -172,8 +178,11 @@ def main() -> None:
         frame.to_csv(tables / f"{name}.csv", index=False)
         (tables / f"{name}.tex").write_text(frame.to_latex(index=False, float_format="%.4f"), encoding="utf-8")
     make_figures(metrics, comparison_table, figures)
-    write_json(results / "validation.json", {"valid": True, "trajectories": 450,
-                                              "budgets_per_trajectory": 15})
+    write_json(results / f"{prefix}validation.json", {
+        "valid": True, "representation": representation,
+        "trajectories": len(cfg["datasets"]) * len(seeds) * len(models) * len(ACQUISITIONS),
+        "budgets_per_trajectory": len(budgets),
+    })
 
 
 if __name__ == "__main__":

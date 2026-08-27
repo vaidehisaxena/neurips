@@ -45,6 +45,23 @@ python run_al.py --config config.yaml
 python analyze_results.py --config config.yaml
 ```
 
+## Representation and LightGBM extension
+
+`prepare_data.py` precomputes pool-standardized RDKit2D descriptors alongside
+ECFP4 in each processed NPZ. The extension preserves the original result files,
+reuses their completed ECFP4 trajectories, and writes representation-specific
+outputs:
+
+```bash
+python prepare_data.py --config config_representation.yaml
+python run_al.py --config config_representation.yaml --representations ecfp4 rdkit2d
+python analyze_results.py --config config_representation.yaml --representation ecfp4
+python analyze_results.py --config config_representation.yaml --representation rdkit2d
+```
+
+Molecular diversity is always computed with ECFP4/Tanimoto so the predictive
+representation changes without changing the batch-diversity policy.
+
 On Apple Silicon without Homebrew `libomp`, use the OpenMP runtime already
 shipped in the pinned scikit-learn wheel:
 

@@ -3,7 +3,7 @@ import pandas as pd
 
 from prepare_data import clean
 from run_al import entropy, entropy_diversity, initial_and_random_order, mean_pairwise_similarity, seeded_rank
-from study import canonicalize, fingerprint
+from study import canonicalize, fingerprint, rdkit2d
 
 
 def test_fingerprints_are_deterministic_binary_1024():
@@ -12,6 +12,15 @@ def test_fingerprints_are_deterministic_binary_1024():
     assert first.dtype == np.uint8
     assert first.shape == (1024,)
     assert set(np.unique(first)) <= {0, 1}
+    np.testing.assert_array_equal(first, second)
+
+
+def test_rdkit2d_is_deterministic_and_finite():
+    first, names = rdkit2d("C[C@H](O)Cl")
+    second, second_names = rdkit2d("C[C@H](O)Cl")
+    assert len(first) == len(names) > 200
+    assert np.isfinite(first).all()
+    np.testing.assert_array_equal(names, second_names)
     np.testing.assert_array_equal(first, second)
 
 

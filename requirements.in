@@ -3,6 +3,7 @@ rdkit==2023.9.6
 tabpfn==8.4.0
 scikit-learn==1.7.2
 xgboost==3.0.5
+lightgbm==4.7.0
 numpy==1.26.4
 pandas==2.2.3
 scipy==1.16.1

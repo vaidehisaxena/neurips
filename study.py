@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem, Descriptors
 from rdkit.Chem.Scaffolds import MurckoScaffold
 
 
@@ -51,13 +51,20 @@ def fingerprint(smiles: str, radius: int = 2, n_bits: int = 1024) -> np.ndarray:
     return out
 
 
+def rdkit2d(smiles: str) -> tuple[np.ndarray, np.ndarray]:
+    mol = Chem.MolFromSmiles(smiles)
+    names = np.asarray([name for name, _ in Descriptors._descList], dtype=str)
+    values = Descriptors.CalcMolDescriptors(mol, missingVal=np.nan, silent=True)
+    return np.asarray([values[name] for name in names], dtype=np.float64), names
+
+
 def load_processed(path: str | Path) -> dict[str, np.ndarray]:
     with np.load(path, allow_pickle=False) as data:
         return {key: data[key] for key in data.files}
 
 
 def package_versions() -> dict[str, str]:
-    names = ["PyTDC", "rdkit", "tabpfn", "scikit-learn", "xgboost", "numpy",
+    names = ["PyTDC", "rdkit", "tabpfn", "scikit-learn", "xgboost", "lightgbm", "numpy",
              "pandas", "scipy", "matplotlib", "torch"]
     found = {}
     for name in names:

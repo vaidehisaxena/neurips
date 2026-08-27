@@ -8,7 +8,7 @@ import pandas as pd
 from tdc.single_pred import ADME, Tox
 from tdc.utils import create_scaffold_split
 
-from study import canonicalize, fingerprint, load_config, scaffold, write_json
+from study import canonicalize, fingerprint, load_config, rdkit2d, scaffold, write_json
 
 
 LOADERS = {"ADME": ADME, "Tox": Tox}
@@ -68,11 +68,25 @@ def prepare_one(key: str, spec: dict, cfg: dict) -> dict:
                     for s in cleaned["canonical_smiles"]])
     if fps.dtype != np.uint8 or fps.shape[1] != 1024 or not np.isin(fps, [0, 1]).all():
         raise AssertionError("Fingerprint acceptance test failed")
+    descriptor_rows = [rdkit2d(s) for s in cleaned["canonical_smiles"]]
+    descriptor_names = descriptor_rows[0][1]
+    descriptors = np.stack([row[0] for row in descriptor_rows])
+    pool_mask = cleaned["split"].isin(["train", "valid"]).to_numpy()
+    medians = np.nanmedian(descriptors[pool_mask], axis=0)
+    medians[~np.isfinite(medians)] = 0.0
+    descriptors = np.where(np.isfinite(descriptors), descriptors, medians)
+    means = descriptors[pool_mask].mean(axis=0)
+    scales = descriptors[pool_mask].std(axis=0)
+    scales[scales == 0] = 1.0
+    descriptors = ((descriptors - means) / scales).astype(np.float32)
+    if not np.isfinite(descriptors).all() or descriptors.shape[1] != len(descriptor_names):
+        raise AssertionError("RDKit2D acceptance test failed")
     molecule_ids = np.array([f"{key}:{i}" for i in range(len(cleaned))])
     out = Path(cfg["paths"]["processed_dir"]) / f"{key}.npz"
     out.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
-        out, fingerprints=fps, labels=cleaned["Y"].to_numpy(np.int8),
+        out, fingerprints=fps, rdkit2d=descriptors, rdkit2d_names=descriptor_names,
+        labels=cleaned["Y"].to_numpy(np.int8),
         canonical_smiles=cleaned["canonical_smiles"].to_numpy(str),
         molecule_ids=molecule_ids, split=cleaned["split"].to_numpy(str),
         scaffolds=cleaned["scaffold"].to_numpy(str),
@@ -84,6 +98,7 @@ def prepare_one(key: str, spec: dict, cfg: dict) -> dict:
         "scaffold_count": int(cleaned["scaffold"].nunique()),
         "pool_scaffold_count": int(pool["scaffold"].nunique()),
         "test_scaffold_count": int(test["scaffold"].nunique()),
+        "rdkit2d_features": int(descriptors.shape[1]),
     })
     write_json(out.with_suffix(".json"), stats)
     return {"dataset": key, **stats}

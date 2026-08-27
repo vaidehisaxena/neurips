@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import shutil
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,8 +16,10 @@ from sklearn.metrics import average_precision_score, brier_score_loss, log_loss,
 from study import config_hash, hardware, load_config, load_processed, package_versions, sha256, write_json
 
 
-MODELS = ("tabpfn", "random_forest", "xgboost")
+BASE_MODELS = ("tabpfn", "random_forest", "xgboost")
+MODELS = BASE_MODELS + ("lightgbm",)
 ACQUISITIONS = ("random", "entropy", "entropy_diversity")
+REPRESENTATIONS = ("ecfp4", "rdkit2d")
 
 
 def initial_and_random_order(labels: np.ndarray, seed: int, size: int) -> tuple[np.ndarray, np.ndarray]:
@@ -94,6 +97,9 @@ def make_model(name: str, cfg: dict, seed: int):
     if name == "xgboost":
         from xgboost import XGBClassifier
         return XGBClassifier(random_state=seed, **cfg["models"][name])
+    if name == "lightgbm":
+        from lightgbm import LGBMClassifier
+        return LGBMClassifier(random_state=seed, **cfg["models"][name])
     if name == "tabpfn":
         import torch
         from tabpfn import TabPFNClassifier
@@ -132,17 +138,22 @@ def evaluate(y: np.ndarray, p: np.ndarray) -> dict[str, float]:
     }
 
 
-def trajectory(dataset: str, seed: int, model_name: str, acquisition: str, cfg: dict):
+def trajectory(dataset: str, seed: int, model_name: str, acquisition: str,
+               representation: str, cfg: dict):
     data = load_processed(Path(cfg["paths"]["processed_dir"]) / f"{dataset}.npz")
     pool_global = np.flatnonzero(np.isin(data["split"], ["train", "valid"]))
     test_global = np.flatnonzero(data["split"] == "test")
-    x_pool, y_pool = data["fingerprints"][pool_global], data["labels"][pool_global]
-    x_test, y_test = data["fingerprints"][test_global], data["labels"][test_global]
+    feature_key = "fingerprints" if representation == "ecfp4" else "rdkit2d"
+    if feature_key not in data:
+        raise KeyError(f"Precomputed representation missing: {feature_key}")
+    x_pool, y_pool = data[feature_key][pool_global], data["labels"][pool_global]
+    x_test, y_test = data[feature_key][test_global], data["labels"][test_global]
+    diversity_pool = data["fingerprints"][pool_global]
     al = cfg["active_learning"]
     labeled, random_order = initial_and_random_order(y_pool, seed, al["initial_size"])
     queried = set(labeled.tolist())
     metrics_rows, query_rows = [], []
-    initial_similarity = mean_pairwise_similarity(x_pool[labeled])
+    initial_similarity = mean_pairwise_similarity(diversity_pool[labeled])
     for idx in labeled:
         global_idx = pool_global[idx]
         query_rows.append({
@@ -192,12 +203,12 @@ def trajectory(dataset: str, seed: int, model_name: str, acquisition: str, cfg: 
                 entropies = scores.copy()
             else:
                 batch, scores, entropies = entropy_diversity(
-                    unlabeled, pool_p, x_pool, labeled, al["batch_size"],
+                    unlabeled, pool_p, diversity_pool, labeled, al["batch_size"],
                     min(al["entropy_shortlist"], len(unlabeled)), seed + round_index,
                 )
         if len(batch) != al["batch_size"] or queried.intersection(batch.tolist()):
             raise AssertionError("Invalid acquisition batch")
-        similarity = mean_pairwise_similarity(x_pool[batch])
+        similarity = mean_pairwise_similarity(diversity_pool[batch])
         for idx, score, ent_score in zip(batch, scores, entropies):
             global_idx = pool_global[idx]
             query_rows.append({
@@ -222,11 +233,12 @@ def append_checkpoint(path: Path, new: pd.DataFrame) -> None:
     temporary.replace(path)
 
 
-def write_manifest(config_path: str, cfg: dict) -> None:
+def write_manifest(config_path: str, cfg: dict, representation: str, prefix: str) -> None:
     checkpoint = Path(cfg["paths"]["checkpoint"])
-    write_json(Path(cfg["paths"]["results_dir"]) / "manifest.json", {
+    write_json(Path(cfg["paths"]["results_dir"]) / f"{prefix}manifest.json", {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "configuration_hash": config_hash(config_path),
+        "representation": representation,
         "package_versions": package_versions(), "hardware": hardware(),
         "tabpfn_checkpoint_identity": checkpoint.name,
         "tabpfn_checkpoint_sha256": sha256(checkpoint) if checkpoint.is_file() else None,
@@ -241,44 +253,61 @@ def main() -> None:
     parser.add_argument("--models", nargs="*", choices=MODELS)
     parser.add_argument("--acquisitions", nargs="*", choices=ACQUISITIONS)
     parser.add_argument("--seeds", nargs="*", type=int)
+    parser.add_argument("--representations", nargs="+", choices=REPRESENTATIONS,
+                        default=None)
     args = parser.parse_args()
     cfg = load_config(args.config)
     if args.smoke:
         cfg["active_learning"]["final_budget"] = 64
     datasets = args.datasets or list(cfg["datasets"])
-    models = args.models or list(MODELS)
+    extension = args.representations is not None
+    representations = args.representations or ["ecfp4"]
+    models = args.models or list(MODELS if extension else BASE_MODELS)
     acquisitions = args.acquisitions or list(ACQUISITIONS)
     seeds = args.seeds or cfg["active_learning"]["seeds"]
     results = Path(cfg["paths"]["results_dir"])
     results.mkdir(parents=True, exist_ok=True)
-    metrics_path = results / ("smoke_metrics.csv" if args.smoke else "metrics.csv")
-    queries_path = results / ("smoke_queries.csv" if args.smoke else "queries.csv")
-    complete = set()
-    if metrics_path.exists():
-        prior = pd.read_csv(metrics_path)
-        expected = 3 if args.smoke else 15
-        counts = prior.groupby(["dataset", "seed", "model", "acquisition"]).size()
-        complete = set(counts[counts == expected].index)
-        if queries_path.exists():
-            prior_queries = pd.read_csv(queries_path)
-            query_counts = prior_queries.groupby(
-                ["dataset", "seed", "model", "acquisition"]
-            ).size()
-            complete &= set(query_counts[query_counts == cfg["active_learning"]["final_budget"]].index)
-        else:
-            complete = set()
-    for dataset in datasets:
-        for seed in seeds:
-            for model in models:
-                for acquisition in acquisitions:
-                    key = (dataset, seed, model, acquisition)
-                    if key in complete:
-                        continue
-                    metric_rows, query_rows = trajectory(dataset, seed, model, acquisition, cfg)
-                    append_checkpoint(metrics_path, metric_rows)
-                    append_checkpoint(queries_path, query_rows)
-                    print(f"completed {key}", flush=True)
-    write_manifest(args.config, cfg)
+    for representation in representations:
+        prefix = f"{representation}_" if extension else ""
+        smoke = "smoke_" if args.smoke else ""
+        metrics_path = results / f"{prefix}{smoke}metrics.csv"
+        queries_path = results / f"{prefix}{smoke}queries.csv"
+        if extension and representation == "ecfp4" and not args.smoke:
+            legacy_metrics, legacy_queries = results / "metrics.csv", results / "queries.csv"
+            if (not metrics_path.exists() and not queries_path.exists()
+                    and legacy_metrics.exists() and legacy_queries.exists()):
+                shutil.copyfile(legacy_metrics, metrics_path)
+                shutil.copyfile(legacy_queries, queries_path)
+        complete = set()
+        if metrics_path.exists():
+            prior = pd.read_csv(metrics_path)
+            expected = 3 if args.smoke else 15
+            counts = prior.groupby(["dataset", "seed", "model", "acquisition"]).size()
+            complete = set(counts[counts == expected].index)
+            if queries_path.exists():
+                prior_queries = pd.read_csv(queries_path)
+                query_counts = prior_queries.groupby(
+                    ["dataset", "seed", "model", "acquisition"]
+                ).size()
+                complete &= set(query_counts[
+                    query_counts == cfg["active_learning"]["final_budget"]
+                ].index)
+            else:
+                complete = set()
+        for dataset in datasets:
+            for seed in seeds:
+                for model in models:
+                    for acquisition in acquisitions:
+                        key = (dataset, seed, model, acquisition)
+                        if key in complete:
+                            continue
+                        metric_rows, query_rows = trajectory(
+                            dataset, seed, model, acquisition, representation, cfg
+                        )
+                        append_checkpoint(metrics_path, metric_rows)
+                        append_checkpoint(queries_path, query_rows)
+                        print(f"completed {(representation,) + key}", flush=True)
+        write_manifest(args.config, cfg, representation, prefix)
 
 
 if __name__ == "__main__":
