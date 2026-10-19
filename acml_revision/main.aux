@@ -1,0 +1,115 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand*\HyPL@Entry[1]{}
+\bibstyle{plainnat}
+\citation{settles2009active}
+\citation{graff2021molpal}
+\citation{rogers2010ecfp}
+\citation{landrum2024rdkit}
+\citation{yang2019analyzing}
+\citation{wu2026controlled}
+\citation{evbarunegbe2026activefusion}
+\citation{treerath2026active}
+\HyPL@Entry{0<</S/D>>}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\citation{hollmann2025accurate}
+\citation{chen2026tabpfn,benhicham2026molecular}
+\citation{graff2021molpal}
+\citation{sener2018coreset,biyik2019dpp}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {Paired molecular active-learning protocol.} Five TDC ADMET tasks are canonicalized, deduplicated, and divided by a fixed Bemis--Murcko scaffold split. Matched ECFP4 and RDKit2D representations are evaluated with four learners. Starting from 32 labeled molecules, the system acquires batches of 16 by random, entropy, or entropy--diversity selection, refits the learner, and evaluates on an untouched test set through a budget of 256 labels.}}{2}{figure.1}\protected@file@percent }
+\newlabel{fig:pipeline}{{1}{2}{\textbf {Paired molecular active-learning protocol.} Five TDC ADMET tasks are canonicalized, deduplicated, and divided by a fixed Bemis--Murcko scaffold split. Matched ECFP4 and RDKit2D representations are evaluated with four learners. Starting from 32 labeled molecules, the system acquires batches of 16 by random, entropy, or entropy--diversity selection, refits the learner, and evaluates on an untouched test set through a budget of 256 labels}{figure.1}{}}
+\citation{wu2026controlled}
+\citation{evbarunegbe2026activefusion}
+\citation{hollmann2025accurate}
+\citation{chen2026tabpfn,benhicham2026molecular}
+\citation{treerath2026active}
+\citation{huang2021tdc}
+\citation{bemis1996frameworks}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Molecular active learning.}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Representation effects in AL.}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Tabular foundation models.}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Experimental Design}{3}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Datasets, cleaning, and scaffold splits}{3}{subsection.3.1}\protected@file@percent }
+\citation{rogers2010ecfp}
+\citation{landrum2024rdkit}
+\citation{breiman2001random,chen2016xgboost,ke2017lightgbm}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Dataset characteristics after canonicalization and deduplication. Pool and test sizes correspond to the fixed scaffold partition used in all paired runs.}}{4}{table.1}\protected@file@percent }
+\newlabel{tab:data}{{1}{4}{Dataset characteristics after canonicalization and deduplication. Pool and test sizes correspond to the fixed scaffold partition used in all paired runs}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Representations}{4}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Models and fixed configurations}{4}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Acquisition protocol}{5}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Metrics and statistical analysis}{5}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Results}{5}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Representation changes label efficiency and model ranking}{5}{subsection.4.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {Representation effects on label efficiency.} (a) Macro normalized AULC averaged over policies, datasets, and seeds. (b) Mean paired RDKit2D-minus-ECFP4 AULC effects for every model--policy condition; bars are 95\% paired-bootstrap confidence intervals over 50 matched endpoint--seed trajectories. Unlike the earlier boxplot, panel (b) depicts uncertainty in the mean effect relevant to the central claim.}}{6}{figure.2}\protected@file@percent }
+\newlabel{fig:main}{{2}{6}{\textbf {Representation effects on label efficiency.} (a) Macro normalized AULC averaged over policies, datasets, and seeds. (b) Mean paired RDKit2D-minus-ECFP4 AULC effects for every model--policy condition; bars are 95\% paired-bootstrap confidence intervals over 50 matched endpoint--seed trajectories. Unlike the earlier boxplot, panel (b) depicts uncertainty in the mean effect relevant to the central claim}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Endpoint heterogeneity limits the macro conclusion}{6}{subsection.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \textbf  {Representation-by-model interaction.} Change from ECFP4 to RDKit2D in the paired TabPFN-minus-tree AULC contrast. Positive values mean that RDKit2D benefits TabPFN more than the indicated comparator. Intervals use 50 matched endpoint--seed trajectories for each acquisition policy.}}{7}{figure.3}\protected@file@percent }
+\newlabel{fig:interaction}{{3}{7}{\textbf {Representation-by-model interaction.} Change from ECFP4 to RDKit2D in the paired TabPFN-minus-tree AULC contrast. Positive values mean that RDKit2D benefits TabPFN more than the indicated comparator. Intervals use 50 matched endpoint--seed trajectories for each acquisition policy}{figure.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Endpoint heterogeneity in representation gains.} Each box summarizes 120 paired RDKit2D-minus-ECFP4 AULC differences (four learners, three policies, and ten seeds); whiskers extend to 1.5 IQR. This distributional view is retained from the original paper, while Figure\nobreakspace  {}\ref  {fig:main} provides confidence intervals for the mean macro effects.}}{7}{figure.4}\protected@file@percent }
+\newlabel{fig:endpoints}{{4}{7}{\textbf {Endpoint heterogeneity in representation gains.} Each box summarizes 120 paired RDKit2D-minus-ECFP4 AULC differences (four learners, three policies, and ten seeds); whiskers extend to 1.5 IQR. This distributional view is retained from the original paper, while Figure~\ref {fig:main} provides confidence intervals for the mean macro effects}{figure.4}{}}
+\citation{guo2017calibration}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Acquisition policy effects are smaller than representation effects}{8}{subsection.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {ECFP4 learning trajectories.} Test AUROC from 32 to 256 labeled molecules for every learner and acquisition policy. Line patterns and markers distinguish acquisition policies while the Figure\nobreakspace  {}\ref  {fig:pipeline} palette maintains visual consistency.}}{8}{figure.5}\protected@file@percent }
+\newlabel{fig:learning-ecfp4}{{5}{8}{\textbf {ECFP4 learning trajectories.} Test AUROC from 32 to 256 labeled molecules for every learner and acquisition policy. Line patterns and markers distinguish acquisition policies while the Figure~\ref {fig:pipeline} palette maintains visual consistency}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Probability quality and runtime expose different trade-offs}{8}{subsection.4.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces \textbf  {RDKit2D learning trajectories.} Test AUROC over the same label budgets, learners, and acquisition policies as Figure\nobreakspace  {}\ref  {fig:learning-ecfp4}. The separated panel preserves legibility when placed within the results narrative.}}{9}{figure.6}\protected@file@percent }
+\newlabel{fig:learning-rdkit2d}{{6}{9}{\textbf {RDKit2D learning trajectories.} Test AUROC over the same label budgets, learners, and acquisition policies as Figure~\ref {fig:learning-ecfp4}. The separated panel preserves legibility when placed within the results narrative}{figure.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces \textbf  {Acquisition-policy contrasts with ECFP4.} Mean paired AULC differences and 95\% normal-approximation intervals across matched endpoint--seed trajectories.}}{9}{figure.7}\protected@file@percent }
+\newlabel{fig:acquisition-ecfp4}{{7}{9}{\textbf {Acquisition-policy contrasts with ECFP4.} Mean paired AULC differences and 95\% normal-approximation intervals across matched endpoint--seed trajectories}{figure.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces \textbf  {Acquisition-policy contrasts with RDKit2D.} The separated representation-specific panel keeps the policy comparison adjacent to the corresponding results while avoiding a dense full-page composite.}}{10}{figure.8}\protected@file@percent }
+\newlabel{fig:acquisition-rdkit2d}{{8}{10}{\textbf {Acquisition-policy contrasts with RDKit2D.} The separated representation-specific panel keeps the policy comparison adjacent to the corresponding results while avoiding a dense full-page composite}{figure.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces \textbf  {Secondary outcomes.} (a) Cumulative wall-clock time over all endpoints, seeds, budgets, and acquisition policies, shown on a logarithmic axis. (b) Mean Brier score and NLL averaged over datasets, seeds, budgets, and policies; lower is better for both. Labels identify learners.}}{10}{figure.9}\protected@file@percent }
+\newlabel{fig:secondary}{{9}{10}{\textbf {Secondary outcomes.} (a) Cumulative wall-clock time over all endpoints, seeds, budgets, and acquisition policies, shown on a logarithmic axis. (b) Mean Brier score and NLL averaged over datasets, seeds, budgets, and policies; lower is better for both. Labels identify learners}{figure.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Secondary metrics averaged over acquisition policies, datasets, seeds, and budgets. Runtime is the mean total minutes for one representation--model--policy condition over all five datasets and ten seeds. Arrows indicate preferred direction.}}{11}{table.2}\protected@file@percent }
+\newlabel{tab:secondary}{{2}{11}{Secondary metrics averaged over acquisition policies, datasets, seeds, and budgets. Runtime is the mean total minutes for one representation--model--policy condition over all five datasets and ten seeds. Arrows indicate preferred direction}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Representation changes the selected molecules}{11}{subsection.4.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces \textbf  {Selected-molecule redundancy.} Mean within-batch ECFP4 Tanimoto similarity across endpoints and acquisition seeds, with 95\% bootstrap intervals. Filled markers denote RDKit2D and open markers ECFP4. Lower similarity indicates more structurally diverse batches.}}{11}{figure.10}\protected@file@percent }
+\newlabel{fig:diversity}{{10}{11}{\textbf {Selected-molecule redundancy.} Mean within-batch ECFP4 Tanimoto similarity across endpoints and acquisition seeds, with 95\% bootstrap intervals. Filled markers denote RDKit2D and open markers ECFP4. Lower similarity indicates more structurally diverse batches}{figure.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{12}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}What the ranking reversal does and does not establish}{12}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Implications for active-learning benchmarks}{12}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Limitations}{13}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:limitations}{{5.3}{13}{Limitations}{subsection.5.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{13}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Model and protocol details}{13}{appendix.A}\protected@file@percent }
+\newlabel{app:hyper}{{A}{13}{Limitations}{appendix.A}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Fixed model configurations used in every endpoint and representation.}}{14}{table.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Interpretation of uncertainty}{14}{subsection.A.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Planned confirmation experiments}{14}{subsection.A.2}\protected@file@percent }
+\bibdata{references}
+\bibcite{bemis1996frameworks}{{1}{1996}{{Bemis and Murcko}}{{}}}
+\bibcite{benhicham2026molecular}{{2}{2026}{{Ben~Hicham et~al.}}{{Ben~Hicham, Rittig, Grohe, and Mitsos}}}
+\bibcite{biyik2019dpp}{{3}{2019}{{Biyik et~al.}}{{Biyik, Wang, Anari, and Sadigh}}}
+\bibcite{breiman2001random}{{4}{2001}{{Breiman}}{{}}}
+\bibcite{chen2016xgboost}{{5}{2016}{{Chen and Guestrin}}{{}}}
+\bibcite{chen2026tabpfn}{{6}{2026}{{Chen et~al.}}{{Chen, Tian, Liao, Deng, Jiang, and Cao}}}
+\bibcite{evbarunegbe2026activefusion}{{7}{2026}{{Evbarunegbe et~al.}}{{Evbarunegbe, Wa, Taylor, and Green}}}
+\bibcite{graff2021molpal}{{8}{2021}{{Graff et~al.}}{{Graff, Shakhnovich, and Coley}}}
+\bibcite{guo2017calibration}{{9}{2017}{{Guo et~al.}}{{Guo, Pleiss, Sun, and Weinberger}}}
+\bibcite{hollmann2025accurate}{{10}{2025}{{Hollmann et~al.}}{{Hollmann, M{\"u}ller, Purucker, Krishnakumar, K{\"o}rfer, Hoo, Schirrmeister, and Hutter}}}
+\bibcite{huang2021tdc}{{11}{2021}{{Huang et~al.}}{{Huang, Fu, Gao, Zhao, Roohani, Leskovec, Coley, Xiao, Sun, and Zitnik}}}
+\bibcite{ke2017lightgbm}{{12}{2017}{{Ke et~al.}}{{Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu}}}
+\bibcite{landrum2024rdkit}{{13}{2024}{{Landrum et~al.}}{{Landrum, Tosco, Kelley, et~al.}}}
+\bibcite{rogers2010ecfp}{{14}{2010}{{Rogers and Hahn}}{{}}}
+\bibcite{sener2018coreset}{{15}{2018}{{Sener and Savarese}}{{}}}
+\bibcite{settles2009active}{{16}{2009}{{Settles}}{{}}}
+\bibcite{treerath2026active}{{17}{2026}{{Treerath and Pittorino}}{{}}}
+\bibcite{wu2026controlled}{{18}{2026}{{Wu et~al.}}{{Wu, Zhang, and Wu}}}
+\bibcite{yang2019analyzing}{{19}{2019}{{Yang et~al.}}{{Yang, Swanson, Jin, Coley, Eiden, Gao, Guzman-Perez, Hopper, Kelley, Mathea, et~al.}}}
+\gdef \@abspage@last{16}
